@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/ui/navigation';
 import { LeadCard } from '@/components/lead/lead-card';
 import { SequenceBuilder } from '@/components/sequence/sequence-builder';
@@ -67,6 +68,7 @@ const mockLeads = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [selectedLead, setSelectedLead] = useState(mockLeads[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -91,7 +93,11 @@ const Dashboard = () => {
               Ditch generic templates—use deep research<br />
               to generate unique sequences for every lead
             </p>
-            <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-8 py-3 shadow-glow">
+            <Button 
+              size="lg" 
+              className="bg-gradient-primary hover:opacity-90 text-lg px-8 py-3 shadow-glow"
+              onClick={() => navigate('/create-campaign')}
+            >
               <Sparkles className="h-5 w-5 mr-2" />
               Create Campaign
             </Button>
