@@ -15,16 +15,21 @@ import {
   CheckCircle,
   Sparkles,
   Target,
-  Mail
+  Mail,
+  RotateCcw
 } from 'lucide-react';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingLookalikes, setIsGeneratingLookalikes] = useState(false);
+  const [lookalikes, setLookalikes] = useState([]);
   const [campaignData, setCampaignData] = useState({
     name: '',
     description: '',
     leads: [],
+    lookalikes: [],
     template: ''
   });
 
@@ -36,12 +41,16 @@ const CreateCampaign = () => {
   ];
 
   const nextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Launch campaign and go back to dashboard
-      navigate('/dashboard');
-    }
+    setIsLoading(true);
+    setTimeout(() => {
+      if (currentStep < 4) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        // Launch campaign and go back to dashboard
+        navigate('/dashboard');
+      }
+      setIsLoading(false);
+    }, 500);
   };
 
   const prevStep = () => {
@@ -55,18 +64,46 @@ const CreateCampaign = () => {
   const handleLeadUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setIsLoading(true);
       // Simulate file processing
       setTimeout(() => {
+        const newLeads = [
+          { name: 'John Smith', email: 'john@example.com', company: 'TechCorp', title: 'CTO', industry: 'Technology' },
+          { name: 'Sarah Johnson', email: 'sarah@startup.co', company: 'StartupCo', title: 'Head of Sales', industry: 'SaaS' },
+          { name: 'Mike Chen', email: 'mike@scale.io', company: 'ScaleIO', title: 'VP Marketing', industry: 'Technology' },
+          { name: 'Emma Wilson', email: 'emma@growth.com', company: 'GrowthCorp', title: 'Chief Revenue Officer', industry: 'Marketing' },
+          { name: 'David Rodriguez', email: 'david@fintech.ai', company: 'FinTech AI', title: 'Director of Sales', industry: 'FinTech' }
+        ];
         setCampaignData(prev => ({
           ...prev,
-          leads: [
-            { name: 'John Smith', email: 'john@example.com', company: 'TechCorp' },
-            { name: 'Sarah Johnson', email: 'sarah@startup.co', company: 'StartupCo' },
-            { name: 'Mike Chen', email: 'mike@scale.io', company: 'ScaleIO' }
-          ]
+          leads: newLeads
         }));
-      }, 1000);
+        setIsLoading(false);
+      }, 2000);
     }
+  };
+
+  const generateLookalikes = () => {
+    setIsGeneratingLookalikes(true);
+    // Simulate AI lookalike generation
+    setTimeout(() => {
+      const generatedLookalikes = [
+        { name: 'Alex Thompson', email: 'alex@techstart.com', company: 'TechStart', title: 'CTO', industry: 'Technology', score: 95 },
+        { name: 'Lisa Park', email: 'lisa@salesforce.co', company: 'SalesForce Co', title: 'Head of Sales', industry: 'SaaS', score: 92 },
+        { name: 'James Kim', email: 'james@marketpro.io', company: 'MarketPro', title: 'VP Marketing', industry: 'Technology', score: 89 },
+        { name: 'Rachel Green', email: 'rachel@revops.com', company: 'RevOps Inc', title: 'Chief Revenue Officer', industry: 'Marketing', score: 87 },
+        { name: 'Tom Anderson', email: 'tom@fintech.co', company: 'FinTech Co', title: 'Director of Sales', industry: 'FinTech', score: 85 }
+      ];
+      setLookalikes(generatedLookalikes);
+      setIsGeneratingLookalikes(false);
+    }, 3000);
+  };
+
+  const addLookalikesToCampaign = (selectedLookalikes: any[]) => {
+    setCampaignData(prev => ({
+      ...prev,
+      lookalikes: selectedLookalikes
+    }));
   };
 
   const renderStep = () => {
@@ -82,11 +119,12 @@ const CreateCampaign = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">Campaign Name</label>
+                <label className="text-sm font-medium mb-2 block">Campaign Name *</label>
                 <Input 
                   placeholder="Enter campaign name..."
                   value={campaignData.name}
                   onChange={(e) => setCampaignData(prev => ({ ...prev, name: e.target.value }))}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
@@ -95,7 +133,15 @@ const CreateCampaign = () => {
                   placeholder="Describe your campaign objectives..."
                   value={campaignData.description}
                   onChange={(e) => setCampaignData(prev => ({ ...prev, description: e.target.value }))}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                 />
+              </div>
+              
+              <div className="bg-gradient-primary/5 p-4 rounded-lg border border-primary/20">
+                <h4 className="font-medium text-primary mb-2">💡 Pro Tip</h4>
+                <p className="text-sm text-muted-foreground">
+                  Clear campaign names help you track performance. Include the target audience or goal.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -111,7 +157,7 @@ const CreateCampaign = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                 <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">Upload Lead File</h3>
                 <p className="text-muted-foreground mb-4">
@@ -123,31 +169,111 @@ const CreateCampaign = () => {
                   onChange={handleLeadUpload}
                   className="hidden"
                   id="lead-upload"
+                  disabled={isLoading}
                 />
                 <label htmlFor="lead-upload">
-                  <Button className="cursor-pointer">
+                  <Button 
+                    className="cursor-pointer transition-all duration-200 hover:shadow-lg" 
+                    disabled={isLoading}
+                  >
                     <FileText className="h-4 w-4 mr-2" />
-                    Choose File
+                    {isLoading ? 'Processing...' : 'Choose File'}
                   </Button>
                 </label>
               </div>
               
               {campaignData.leads.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-medium flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-success" />
-                    <span>{campaignData.leads.length} leads imported</span>
-                  </h4>
-                  <div className="space-y-2">
-                    {campaignData.leads.slice(0, 3).map((lead, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-success" />
+                      <span>{campaignData.leads.length} leads imported</span>
+                    </h4>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={generateLookalikes}
+                      disabled={isGeneratingLookalikes}
+                      className="transition-all duration-200 hover:bg-primary/10 hover:border-primary/50"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {isGeneratingLookalikes ? 'Generating...' : 'Generate Lookalikes'}
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {campaignData.leads.slice(0, 4).map((lead, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg hover:bg-accent/70 transition-colors">
                         <div>
                           <p className="font-medium">{lead.name}</p>
-                          <p className="text-sm text-muted-foreground">{lead.email} • {lead.company}</p>
+                          <p className="text-sm text-muted-foreground">{lead.title} at {lead.company}</p>
+                          <p className="text-xs text-muted-foreground">{lead.email}</p>
                         </div>
                         <Badge variant="outline" className="bg-success/10 text-success">Verified</Badge>
                       </div>
                     ))}
+                    {campaignData.leads.length > 4 && (
+                      <div className="col-span-full text-center p-3 text-sm text-muted-foreground">
+                        And {campaignData.leads.length - 4} more leads...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Lookalike Results */}
+              {lookalikes.length > 0 && (
+                <div className="space-y-4">
+                  <div className="bg-gradient-primary/5 p-4 rounded-lg border border-primary/20">
+                    <h4 className="font-medium text-primary mb-2 flex items-center space-x-2">
+                      <Sparkles className="h-4 w-4" />
+                      <span>AI Generated Lookalikes</span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Based on your uploaded leads, we found {lookalikes.length} similar prospects with high conversion potential.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      {lookalikes.map((lookalike, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-md transition-all">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <p className="font-medium">{lookalike.name}</p>
+                              <Badge variant="outline" className="bg-primary/10 text-primary">
+                                {lookalike.score}% match
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{lookalike.title} at {lookalike.company}</p>
+                            <p className="text-xs text-muted-foreground">{lookalike.industry} • {lookalike.email}</p>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => addLookalikesToCampaign([lookalike])}
+                            className="transition-all duration-200 hover:bg-primary hover:text-primary-foreground"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex space-x-2 mt-4">
+                      <Button 
+                        variant="outline"
+                        onClick={() => addLookalikesToCampaign(lookalikes)}
+                        className="flex-1 transition-all duration-200"
+                      >
+                        Add All Lookalikes
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setLookalikes([])}
+                        className="transition-all duration-200"
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -179,7 +305,16 @@ const CreateCampaign = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-primary">
+                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-primary hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">Step 1 - Initial Contact</span>
+                      <div className="flex space-x-2">
+                        <Badge variant="outline" className="text-xs">Informal</Badge>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm">Step 1 - Initial Contact</span>
                       <Badge variant="outline" className="text-xs">Informal</Badge>
@@ -194,7 +329,16 @@ const CreateCampaign = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-warning">
+                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-warning hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">Step 2 - Value Proposition</span>
+                      <div className="flex space-x-2">
+                        <Badge variant="outline" className="text-xs">Informal</Badge>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm">Step 2 - Value Proposition</span>
                       <Badge variant="outline" className="text-xs">Informal</Badge>
@@ -209,7 +353,16 @@ const CreateCampaign = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-success">
+                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-success hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">Step 3 - Social Proof</span>
+                      <div className="flex space-x-2">
+                        <Badge variant="outline" className="text-xs">Informal</Badge>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm">Step 3 - Social Proof</span>
                       <Badge variant="outline" className="text-xs">Informal</Badge>
@@ -240,18 +393,20 @@ const CreateCampaign = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-accent/50 p-4 rounded-lg">
+                <div className="bg-accent/50 p-4 rounded-lg hover:bg-accent/70 transition-colors">
                   <h4 className="font-medium mb-2">Campaign Details</h4>
                   <p className="text-sm text-muted-foreground">Name: {campaignData.name || 'Untitled Campaign'}</p>
-                  <p className="text-sm text-muted-foreground">Leads: {campaignData.leads.length} contacts</p>
+                  <p className="text-sm text-muted-foreground">Original Leads: {campaignData.leads.length}</p>
+                  <p className="text-sm text-muted-foreground">Lookalikes: {campaignData.lookalikes.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Contacts: {campaignData.leads.length + campaignData.lookalikes.length}</p>
                   <p className="text-sm text-muted-foreground">Sequence: 3 steps</p>
                 </div>
                 
-                <div className="bg-accent/50 p-4 rounded-lg">
+                <div className="bg-accent/50 p-4 rounded-lg hover:bg-accent/70 transition-colors">
                   <h4 className="font-medium mb-2">Expected Results</h4>
                   <p className="text-sm text-muted-foreground">Open Rate: ~65%</p>
                   <p className="text-sm text-muted-foreground">Response Rate: ~15%</p>
-                  <p className="text-sm text-muted-foreground">Est. Meetings: 2-3</p>
+                  <p className="text-sm text-muted-foreground">Est. Meetings: {Math.ceil((campaignData.leads.length + campaignData.lookalikes.length) * 0.15 * 0.3)}</p>
                 </div>
               </div>
               
@@ -260,7 +415,20 @@ const CreateCampaign = () => {
                 <p className="text-sm text-muted-foreground">
                   Your personalized sequence is ready. We'll start sending emails and track responses automatically.
                 </p>
-              </div>
+                </div>
+                
+                <div className="flex space-x-2 mt-4">
+                  <Button variant="outline" className="flex-1 transition-all duration-200 hover:bg-primary/10">
+                    Customize Sequence
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="transition-all duration-200 hover:bg-primary/10"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Regenerate
+                  </Button>
+                </div>
             </CardContent>
           </Card>
         );
@@ -323,7 +491,8 @@ const CreateCampaign = () => {
           <Button 
             variant="outline" 
             onClick={prevStep}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-md"
+            disabled={isLoading}
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{currentStep === 1 ? 'Back to Dashboard' : 'Previous'}</span>
@@ -331,9 +500,12 @@ const CreateCampaign = () => {
           
           <Button 
             onClick={nextStep}
-            disabled={currentStep === 2 && campaignData.leads.length === 0}
-            className="flex items-center space-x-2"
+            disabled={(currentStep === 1 && !campaignData.name.trim()) || 
+                     (currentStep === 2 && campaignData.leads.length === 0) || 
+                     isLoading}
+            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25"
           >
+            {isLoading && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />}
             <span>{currentStep === 4 ? 'Launch Campaign' : 'Next'}</span>
             <ArrowRight className="h-4 w-4" />
           </Button>
