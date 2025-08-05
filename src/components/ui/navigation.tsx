@@ -1,8 +1,27 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { Button } from './button';
 import { Avatar, AvatarImage, AvatarFallback } from './avatar';
 
 export const Navigation = () => {
+  const navigate = useNavigate();
+  const { isSignedIn, signOut } = useAuth();
+  const { user } = useUser();
+  
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+  
+  const handleSignupClick = () => {
+    navigate('/signup');
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+  
   return (
     <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -27,16 +46,31 @@ export const Navigation = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
-            Log in
-          </Button>
-          <Button size="sm">
-            Sign up
-          </Button>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
+          {!isSignedIn ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleLoginClick}>
+                Log in
+              </Button>
+              <Button size="sm" onClick={handleSignupClick}>
+                Sign up
+              </Button>
+            </>
+          ) : (
+            <>
+              <span className="text-sm text-muted-foreground">
+                Welcome, {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                Sign out
+              </Button>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.imageUrl} />
+                <AvatarFallback>
+                  {user?.firstName?.[0] || user?.emailAddresses[0]?.emailAddress?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </>
+          )}
         </div>
       </div>
     </nav>
