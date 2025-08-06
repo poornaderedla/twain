@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Upload, 
   FileText, 
@@ -38,6 +39,15 @@ const CreateCampaign = () => {
     leads: [],
     lookalikes: [],
     template: ''
+  });
+  
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualLead, setManualLead] = useState({
+    name: '',
+    email: '',
+    company: '',
+    title: '',
+    industry: ''
   });
 
   const steps = [
@@ -125,6 +135,23 @@ const CreateCampaign = () => {
       ...prev,
       lookalikes: selectedLookalikes
     }));
+  };
+
+  const addManualLead = () => {
+    if (manualLead.name && manualLead.email) {
+      setCampaignData(prev => ({
+        ...prev,
+        leads: [...prev.leads, { ...manualLead }]
+      }));
+      setManualLead({
+        name: '',
+        email: '',
+        company: '',
+        title: '',
+        industry: ''
+      });
+      setShowManualForm(false);
+    }
   };
 
   const renderStep = () => {
@@ -220,13 +247,86 @@ const CreateCampaign = () => {
                 </div>
 
                 {/* Add manually */}
-                <div className="bg-card border border-border rounded-lg p-6 text-center transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
-                  <div className="bg-warning/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <UserPlus className="w-6 h-6 text-warning" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Add manually</h3>
-                  <p className="text-muted-foreground text-sm">LinkedIn URLs</p>
-                </div>
+                <Dialog open={showManualForm} onOpenChange={setShowManualForm}>
+                  <DialogTrigger asChild>
+                    <div className="bg-card border border-border rounded-lg p-6 text-center transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                      <div className="bg-warning/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <UserPlus className="w-6 h-6 text-warning" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">Add manually</h3>
+                      <p className="text-muted-foreground text-sm">Enter lead details</p>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Add Lead Manually</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Name *</label>
+                        <Input
+                          placeholder="Enter full name"
+                          value={manualLead.name}
+                          onChange={(e) => setManualLead(prev => ({ ...prev, name: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Email *</label>
+                        <Input
+                          type="email"
+                          placeholder="Enter email address"
+                          value={manualLead.email}
+                          onChange={(e) => setManualLead(prev => ({ ...prev, email: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Company</label>
+                        <Input
+                          placeholder="Enter company name"
+                          value={manualLead.company}
+                          onChange={(e) => setManualLead(prev => ({ ...prev, company: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Job Title</label>
+                        <Input
+                          placeholder="Enter job title"
+                          value={manualLead.title}
+                          onChange={(e) => setManualLead(prev => ({ ...prev, title: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Industry</label>
+                        <Input
+                          placeholder="Enter industry"
+                          value={manualLead.industry}
+                          onChange={(e) => setManualLead(prev => ({ ...prev, industry: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <div className="flex space-x-2 pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowManualForm(false)}
+                          className="flex-1 transition-all duration-200"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={addManualLead}
+                          disabled={!manualLead.name.trim() || !manualLead.email.trim()}
+                          className="flex-1 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Add Lead
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {/* Lookalike Section */}
@@ -633,7 +733,7 @@ const CreateCampaign = () => {
           <Button 
             onClick={nextStep}
             disabled={(currentStep === 1 && !campaignData.name.trim()) || 
-                     (currentStep === 2 && campaignData.leads.length === 0) || 
+                     (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) || 
                      isLoading}
             className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25"
           >
