@@ -21,7 +21,11 @@ import {
   UserPlus,
   Loader2,
   Plus,
-  X
+  X,
+  Lightbulb,
+  History,
+  Settings,
+  Wand2
 } from 'lucide-react';
 
 const CreateCampaign = () => {
@@ -38,7 +42,10 @@ const CreateCampaign = () => {
     description: '',
     leads: [],
     lookalikes: [],
-    template: ''
+    template: '',
+    idea: '',
+    sequenceType: 'auto', // 'auto' or 'customize'
+    channel: 'email' // 'email', 'linkedin', 'both'
   });
   
   const [showManualForm, setShowManualForm] = useState(false);
@@ -53,14 +60,15 @@ const CreateCampaign = () => {
   const steps = [
     { id: 1, title: 'Campaign Setup', icon: Target },
     { id: 2, title: 'Import Leads', icon: Users },
-    { id: 3, title: 'Sequence Builder', icon: Mail },
-    { id: 4, title: 'Review & Launch', icon: CheckCircle }
+    { id: 3, title: 'Campaign Idea', icon: Lightbulb },
+    { id: 4, title: 'Sequence Builder', icon: Mail },
+    { id: 5, title: 'Review & Launch', icon: CheckCircle }
   ];
 
   const nextStep = () => {
     setIsLoading(true);
     setTimeout(() => {
-      if (currentStep < 4) {
+      if (currentStep < 5) {
         setCurrentStep(currentStep + 1);
       } else {
         // Launch campaign and go back to dashboard
@@ -533,103 +541,274 @@ const CreateCampaign = () => {
           <Card className="max-w-4xl mx-auto">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Mail className="h-5 w-5 text-primary" />
-                <span>AI Sequence Builder</span>
-                <Badge className="bg-primary/10 text-primary">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI Powered
-                </Badge>
+                <Lightbulb className="h-5 w-5 text-primary" />
+                <span>Campaign idea</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="bg-gradient-secondary p-6 rounded-lg border border-primary/20">
-                <h3 className="font-medium mb-3 flex items-center space-x-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span>AI Generated Sequence</span>
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Based on your leads' profiles and industry data, I've generated a personalized 3-step sequence.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-primary hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 1 - Initial Contact</span>
-                      <div className="flex space-x-2">
-                        <Badge variant="outline" className="text-xs">Informal</Badge>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
-                          <RotateCcw className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 1 - Initial Contact</span>
-                      <Badge variant="outline" className="text-xs">Informal</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      "Hey [First Name], noticed your team at [Company] is scaling [specific challenge]. 
-                      We just launched deep research that builds outreach sequences using live social proof..."
-                    </p>
-                    <div className="flex space-x-2 mt-2">
-                      <Badge variant="outline" className="text-xs">18 sec</Badge>
-                      <Badge variant="outline" className="text-xs">60 words</Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-warning hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 2 - Value Proposition</span>
-                      <div className="flex space-x-2">
-                        <Badge variant="outline" className="text-xs">Informal</Badge>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
-                          <RotateCcw className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 2 - Value Proposition</span>
-                      <Badge variant="outline" className="text-xs">Informal</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      "Reaching out because [specific insight about their business]. 
-                      Are you already building custom sequences or still relying on templates?"
-                    </p>
-                    <div className="flex space-x-2 mt-2">
-                      <Badge variant="outline" className="text-xs">15 sec</Badge>
-                      <Badge variant="outline" className="text-xs">50 words</Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-card p-4 rounded-lg border-l-4 border-l-success hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 3 - Social Proof</span>
-                      <div className="flex space-x-2">
-                        <Badge variant="outline" className="text-xs">Informal</Badge>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
-                          <RotateCcw className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">Step 3 - Social Proof</span>
-                      <Badge variant="outline" className="text-xs">Informal</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      "How about we set up a chat with a customer who started using Twain when their 
-                      [specific situation]. Let me know and I can introduce you."
-                    </p>
-                    <div className="flex space-x-2 mt-2">
-                      <Badge variant="outline" className="text-xs">11 sec</Badge>
-                      <Badge variant="outline" className="text-xs">35 words</Badge>
-                    </div>
-                  </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">Specify why you're reaching out to prospects</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Describe your idea</label>
+                  <Textarea 
+                    placeholder="Tell us about your campaign goals, value proposition, or what you want to communicate to your prospects..."
+                    value={campaignData.idea}
+                    onChange={(e) => setCampaignData(prev => ({ ...prev, idea: e.target.value }))}
+                    className="min-h-[120px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
                 </div>
+                
+                <div className="flex justify-center space-x-4">
+                  <Button
+                    variant="outline"
+                    className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      // Suggest functionality
+                      const suggestions = [
+                        "Introduce our new AI-powered analytics platform that helps reduce operational costs by 30%",
+                        "Share insights about industry trends and offer a free consultation on optimization strategies",
+                        "Present case studies showing how similar companies increased revenue by 40% using our solution"
+                      ];
+                      const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                      setCampaignData(prev => ({ ...prev, idea: randomSuggestion }));
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Suggest</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
+                    onClick={() => {
+                      // History functionality
+                      const history = [
+                        "Healthcare cost reduction campaign from Q3 2024",
+                        "SaaS onboarding optimization outreach from Q2 2024",
+                        "Enterprise security solutions campaign from Q1 2024"
+                      ];
+                      alert(`Previous campaign ideas:\n\n${history.join('\n')}`);
+                    }}
+                  >
+                    <History className="h-4 w-4" />
+                    <span>History</span>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={nextStep}
+                  disabled={!campaignData.idea.trim() || isLoading}
+                  className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Continue →'
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
         );
 
       case 4:
+        return (
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-primary" />
+                <span>Sequence Builder</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Auto vs Customize Selection */}
+              <div className="grid grid-cols-2 gap-6">
+                <div 
+                  onClick={() => setCampaignData(prev => ({ ...prev, sequenceType: 'auto' }))}
+                  className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                    campaignData.sequenceType === 'auto' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="bg-primary/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Wand2 className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Auto</h3>
+                    <p className="text-muted-foreground text-sm">Twain decides</p>
+                  </div>
+                </div>
+                
+                <div 
+                  onClick={() => setCampaignData(prev => ({ ...prev, sequenceType: 'customize' }))}
+                  className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                    campaignData.sequenceType === 'customize' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="bg-primary/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Settings className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Customize</h3>
+                    <p className="text-muted-foreground text-sm">Manual setup</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Outbound Channel Selection */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Outbound channel</h3>
+                <div className="flex space-x-1 bg-background rounded-lg p-1 max-w-md">
+                  <button
+                    onClick={() => setCampaignData(prev => ({ ...prev, channel: 'email' }))}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      campaignData.channel === 'email'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    Email
+                  </button>
+                  <button
+                    onClick={() => setCampaignData(prev => ({ ...prev, channel: 'linkedin' }))}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      campaignData.channel === 'linkedin'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    LinkedIn
+                  </button>
+                  <button
+                    onClick={() => setCampaignData(prev => ({ ...prev, channel: 'both' }))}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      campaignData.channel === 'both'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    Use both
+                  </button>
+                </div>
+              </div>
+
+              {/* Sequence Preview for Customize Mode */}
+              {campaignData.sequenceType === 'customize' && (
+                <div className="bg-gradient-secondary p-6 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span>Email Sequence</span>
+                    </h3>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="transition-all duration-200 hover:scale-105">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Framework
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-card p-4 rounded-lg border hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                          <span className="font-medium text-sm">Email</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <Sparkles className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Hi {"{recipient_name}"}, {"{Opener summarizing a key Recipient Insight on long patient stays}"}
+                        {"{Context sentence linking another Recipient Insight to high hospital costs}"}
+                        {"{Body statement describing how User's platform helps reduce patient stays and improve hospital profitability}"}
+                        {"{CTA question offering to share a relevant case study}"}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-card p-4 rounded-lg border hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                          <span className="font-medium text-sm">Email</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <Sparkles className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {"{recipient_name}"}, {"{Body statement detailing a measurable benefit User's platform delivered for a similar hospital}"}
+                        {"{CTA question checking if Recipient is considering ways to shorten patient stays}"}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-card p-4 rounded-lg border hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                          <span className="font-medium text-sm">Email</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <Sparkles className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Follow-up message with additional value proposition and call-to-action.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Create Campaign Button */}
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={nextStep}
+                  disabled={isLoading}
+                  className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Campaign'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 5:
         return (
           <Card className="max-w-2xl mx-auto">
             <CardHeader>
@@ -646,7 +825,8 @@ const CreateCampaign = () => {
                   <p className="text-sm text-muted-foreground">Original Leads: {campaignData.leads.length}</p>
                   <p className="text-sm text-muted-foreground">Lookalikes: {campaignData.lookalikes.length}</p>
                   <p className="text-sm text-muted-foreground">Total Contacts: {campaignData.leads.length + campaignData.lookalikes.length}</p>
-                  <p className="text-sm text-muted-foreground">Sequence: 3 steps</p>
+                  <p className="text-sm text-muted-foreground">Sequence: {campaignData.sequenceType === 'auto' ? 'Auto' : 'Custom'}</p>
+                  <p className="text-sm text-muted-foreground">Channel: {campaignData.channel === 'email' ? 'Email' : campaignData.channel === 'linkedin' ? 'LinkedIn' : 'Email + LinkedIn'}</p>
                 </div>
                 
                 <div className="bg-accent/50 p-4 rounded-lg hover:bg-accent/70 transition-colors">
@@ -745,17 +925,22 @@ const CreateCampaign = () => {
             <span>{currentStep === 1 ? 'Back to Dashboard' : 'Previous'}</span>
           </Button>
           
-          <Button 
-            onClick={nextStep}
-            disabled={(currentStep === 1 && !campaignData.name.trim()) || 
-                     (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) || 
-                     isLoading}
-            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />}
-            <span>{currentStep === 4 ? 'Launch Campaign' : 'Next'}</span>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {currentStep !== 4 && (
+            <Button 
+              onClick={nextStep}
+              disabled={
+                isLoading || 
+                (currentStep === 1 && !campaignData.name.trim()) ||
+                (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) ||
+                (currentStep === 3 && !campaignData.idea.trim())
+              }
+              className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />}
+              <span>{currentStep === 5 ? 'Launch Campaign' : 'Next'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
