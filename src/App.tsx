@@ -17,7 +17,11 @@ const queryClient = new QueryClient();
 const CLERK_PUBLISHABLE_KEY = "pk_test_ZGFybGluZy1vYXJmaXNoLTcxLmNsZXJrLmFjY291bnRzLmRldiQ";
 
 const App = () => (
-  <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+  <ClerkProvider 
+    publishableKey={CLERK_PUBLISHABLE_KEY}
+    routerPush={(to) => window.history.pushState({}, '', to)}
+    routerReplace={(to) => window.history.replaceState({}, '', to)}
+  >
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />

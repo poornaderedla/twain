@@ -1,11 +1,71 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SignUp } from '@clerk/clerk-react';
+import { SignUp, useClerk } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { X, User } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { client } = useClerk();
+  const signUpRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Intercept clicks on Clerk's signin links
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Check if it's a link that contains sign-in
+      if (target.tagName === 'A' && target.getAttribute('href')?.includes('sign-in')) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate('/login');
+        return false;
+      }
+      
+      // Also check for any element with text content that includes "Sign in"
+      if (target.textContent?.includes('Sign in') && target.closest('a')) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate('/login');
+        return false;
+      }
+    };
+
+    // Add event listener to the Clerk component
+    if (signUpRef.current) {
+      signUpRef.current.addEventListener('click', handleClick, true);
+    }
+
+    // Also add a mutation observer to handle dynamically added content
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            const signinLinks = element.querySelectorAll('a[href*="sign-in"], a:has-text("Sign in")');
+            signinLinks.forEach((link) => {
+              link.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate('/login');
+              });
+            });
+          }
+        });
+      });
+    });
+
+    if (signUpRef.current) {
+      observer.observe(signUpRef.current, { childList: true, subtree: true });
+    }
+
+    return () => {
+      if (signUpRef.current) {
+        signUpRef.current.removeEventListener('click', handleClick, true);
+      }
+      observer.disconnect();
+    };
+  }, [navigate]);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -37,7 +97,7 @@ const Signup = () => {
       </div>
 
       {/* Clerk SignUp Component */}
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md" ref={signUpRef}>
         <SignUp 
           appearance={{
             elements: {
@@ -55,7 +115,8 @@ const Signup = () => {
               footerActionLink: "text-blue-600 hover:text-blue-700",
             }
           }}
-          redirectUrl="/create-campaign"
+          redirectUrl={window.location.origin + "/create-campaign"}
+          signInUrl={window.location.origin + "/login"}
         />
       </div>
     </div>
