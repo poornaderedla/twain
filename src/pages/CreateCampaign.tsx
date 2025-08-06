@@ -126,6 +126,11 @@ const CreateCampaign = () => {
         { name: 'Tom Anderson', email: 'tom@fintech.co', company: 'FinTech Co', title: 'Director of Sales', industry: 'FinTech', score: 85 }
       ];
       setLookalikes(generatedLookalikes);
+      // Auto-add lookalikes to campaign data so Next button becomes enabled
+      setCampaignData(prev => ({
+        ...prev,
+        lookalikes: generatedLookalikes
+      }));
       setIsGeneratingLookalikes(false);
     }, 3000);
   };
@@ -400,7 +405,7 @@ const CreateCampaign = () => {
                   <Button
                     onClick={generateLookalikes}
                     disabled={isGeneratingLookalikes || linkedinUrls.every(url => !url.trim())}
-                    className="px-8 py-3 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isGeneratingLookalikes ? (
                       <>
@@ -426,10 +431,17 @@ const CreateCampaign = () => {
                       size="sm"
                       onClick={generateLookalikes}
                       disabled={isGeneratingLookalikes}
-                      className="transition-all duration-200 hover:bg-primary/10 hover:border-primary/50"
+                      className="transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
                     >
                       <Sparkles className="h-4 w-4 mr-2" />
-                      {isGeneratingLookalikes ? 'Generating...' : 'Generate Lookalikes'}
+                      {isGeneratingLookalikes ? (
+                        <>
+                          <Loader2 className="animate-spin w-4 h-4 mr-1" />
+                          Generating...
+                        </>
+                      ) : (
+                        'Generate Lookalikes'
+                      )}
                     </Button>
                   </div>
                   
@@ -482,7 +494,7 @@ const CreateCampaign = () => {
                             variant="outline" 
                             size="sm"
                             onClick={() => addLookalikesToCampaign([lookalike])}
-                            className="transition-all duration-200 hover:bg-primary hover:text-primary-foreground"
+                            className="transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:scale-105 active:scale-95"
                           >
                             Add
                           </Button>
@@ -494,14 +506,17 @@ const CreateCampaign = () => {
                       <Button 
                         variant="outline"
                         onClick={() => addLookalikesToCampaign(lookalikes)}
-                        className="flex-1 transition-all duration-200"
+                        className="flex-1 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
                       >
                         Add All Lookalikes
                       </Button>
                       <Button 
                         variant="outline"
-                        onClick={() => setLookalikes([])}
-                        className="transition-all duration-200"
+                        onClick={() => {
+                          setLookalikes([]);
+                          setCampaignData(prev => ({ ...prev, lookalikes: [] }));
+                        }}
+                        className="transition-all duration-200 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive hover:scale-105 active:scale-95"
                       >
                         Clear
                       </Button>
@@ -723,7 +738,7 @@ const CreateCampaign = () => {
           <Button 
             variant="outline" 
             onClick={prevStep}
-            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-md"
+            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95"
             disabled={isLoading}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -735,7 +750,7 @@ const CreateCampaign = () => {
             disabled={(currentStep === 1 && !campaignData.name.trim()) || 
                      (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) || 
                      isLoading}
-            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25"
+            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />}
             <span>{currentStep === 4 ? 'Launch Campaign' : 'Next'}</span>
