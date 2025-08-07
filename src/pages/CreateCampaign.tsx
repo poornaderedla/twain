@@ -58,12 +58,30 @@ const CreateCampaign = () => {
   });
 
   const steps = [
-    { id: 1, title: 'Campaign Setup', icon: Target },
-    { id: 2, title: 'Import Leads', icon: Users },
-    { id: 3, title: 'Campaign Idea', icon: Lightbulb },
-    { id: 4, title: 'Sequence Builder', icon: Mail },
-    { id: 5, title: 'Review & Launch', icon: CheckCircle }
+    { id: 1, title: 'Persona', icon: Target, description: 'Your offering and value prop' },
+    { id: 2, title: 'Leads', icon: Users, description: 'Who you want to reach out to' },
+    { id: 3, title: 'Idea', icon: Lightbulb, description: 'Reason for reaching out' },
+    { id: 4, title: 'Sequence', icon: Mail, description: 'Your message structure' },
+    { id: 5, title: 'Review & Launch', icon: CheckCircle, description: 'Final review and launch' }
   ];
+
+  // Add persona state
+  const [personaMode, setPersonaMode] = useState('auto'); // 'auto' or 'manual'
+  const [autoPersona, setAutoPersona] = useState({
+    website: '',
+    targetCustomer: '',
+    documents: null
+  });
+  const [manualPersona, setManualPersona] = useState({
+    name: '',
+    companyName: '',
+    painPoints: '',
+    costOfInaction: '',
+    solutions: '',
+    objections: '',
+    competitiveAdvantages: '',
+    socialProof: ''
+  });
 
   const nextStep = () => {
     setIsLoading(true);
@@ -171,41 +189,241 @@ const CreateCampaign = () => {
     switch (currentStep) {
       case 1:
         return (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Target className="h-5 w-5 text-primary" />
-                <span>Campaign Setup</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Campaign Name *</label>
-                <Input 
-                  placeholder="Enter campaign name..."
-                  value={campaignData.name}
-                  onChange={(e) => setCampaignData(prev => ({ ...prev, name: e.target.value }))}
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Description (Optional)</label>
-                <Textarea 
-                  placeholder="Describe your campaign objectives..."
-                  value={campaignData.description}
-                  onChange={(e) => setCampaignData(prev => ({ ...prev, description: e.target.value }))}
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                />
+          <div className="max-w-4xl mx-auto">
+            {/* Auto vs Manual Selection */}
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div 
+                onClick={() => setPersonaMode('auto')}
+                className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                  personaMode === 'auto' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-primary/50 hover:shadow-lg'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="bg-primary/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <Wand2 className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Auto</h3>
+                  <p className="text-muted-foreground text-sm">Import data</p>
+                </div>
               </div>
               
-              <div className="bg-gradient-primary/5 p-4 rounded-lg border border-primary/20">
-                <h4 className="font-medium text-primary mb-2">💡 Pro Tip</h4>
-                <p className="text-sm text-muted-foreground">
-                  Clear campaign names help you track performance. Include the target audience or goal.
-                </p>
+              <div 
+                onClick={() => setPersonaMode('manual')}
+                className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                  personaMode === 'manual' 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-primary/50 hover:shadow-lg'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="bg-primary/20 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Manual</h3>
+                  <p className="text-muted-foreground text-sm">Fill out form</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Auto Mode Form */}
+            {personaMode === 'auto' && (
+              <Card className="max-w-2xl mx-auto">
+                <CardContent className="space-y-6 pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <Input 
+                          placeholder="Enter your company website"
+                          value={autoPersona.website}
+                          onChange={(e) => setAutoPersona(prev => ({ ...prev, website: e.target.value }))}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="transition-all duration-200 hover:bg-primary/10 hover:scale-105 active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Target className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <Textarea 
+                          placeholder="Describe your target customer (optional)"
+                          value={autoPersona.targetCustomer}
+                          onChange={(e) => setAutoPersona(prev => ({ ...prev, targetCustomer: e.target.value }))}
+                          className="min-h-[80px] transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <Button 
+                        variant="outline"
+                        className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
+                        onClick={() => {
+                          // Handle document upload
+                          const fileInput = document.createElement('input');
+                          fileInput.type = 'file';
+                          fileInput.accept = '.pdf,.doc,.docx,.txt';
+                          fileInput.multiple = true;
+                          fileInput.onchange = (e) => {
+                            const files = (e.target as HTMLInputElement).files;
+                            if (files && files.length > 0) {
+                              setAutoPersona(prev => ({ ...prev, documents: files }));
+                            }
+                          };
+                          fileInput.click();
+                        }}
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Documents</span>
+                      </Button>
+                    </div>
+
+                    {autoPersona.documents && (
+                      <div className="bg-success/10 p-3 rounded-lg border border-success/20">
+                        <p className="text-sm text-success font-medium">
+                          {autoPersona.documents.length} document(s) uploaded successfully
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Manual Mode Form */}
+            {personaMode === 'manual' && (
+              <Card className="max-w-2xl mx-auto">
+                <CardContent className="space-y-6 pt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Persona name</label>
+                      <Input 
+                        placeholder="Enter your persona name"
+                        value={manualPersona.name}
+                        onChange={(e) => setManualPersona(prev => ({ ...prev, name: e.target.value }))}
+                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Company or product name</label>
+                      <Input 
+                        placeholder="Which company or product will the messages refer to?"
+                        value={manualPersona.companyName}
+                        onChange={(e) => setManualPersona(prev => ({ ...prev, companyName: e.target.value }))}
+                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Pain points</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="What specific problems does your ICP face?"
+                            value={manualPersona.painPoints}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, painPoints: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Cost of inaction</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="Why should your ICP solve the pain points now?"
+                            value={manualPersona.costOfInaction}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, costOfInaction: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Solutions</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="How do you solve your customer's pain points?"
+                            value={manualPersona.solutions}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, solutions: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Objections</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="What holds your ICP back from using your solution?"
+                            value={manualPersona.objections}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, objections: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Competitive advantages</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="How is your solution different or unique?"
+                            value={manualPersona.competitiveAdvantages}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, competitiveAdvantages: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Social proof</label>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <span className="text-sm text-muted-foreground mt-2">1</span>
+                          <Input 
+                            placeholder="What case studies and results can you mention?"
+                            value={manualPersona.socialProof}
+                            onChange={(e) => setManualPersona(prev => ({ ...prev, socialProof: e.target.value }))}
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         );
 
       case 2:
@@ -869,78 +1087,88 @@ const CreateCampaign = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container py-8">
-        {/* Progress Indicator */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => {
+      <div className="flex max-w-7xl mx-auto">
+        {/* Column Sidebar */}
+        <div className="w-80 bg-muted/20 min-h-screen p-6 border-r border-border">
+          <div className="space-y-2">
+            {steps.map((step) => {
               const Icon = step.icon;
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
               
               return (
-                <div key={step.id} className="flex items-center">
-                  <div className={`
-                    flex items-center space-x-3 p-3 rounded-lg transition-all
-                    ${isActive ? 'bg-primary/10 text-primary' : ''}
-                    ${isCompleted ? 'text-success' : ''}
-                    ${!isActive && !isCompleted ? 'text-muted-foreground' : ''}
-                  `}>
+                <div 
+                  key={step.id}
+                  className={`
+                    p-4 rounded-lg transition-all duration-200 cursor-pointer
+                    ${isActive ? 'bg-primary/10 border border-primary/30' : 'hover:bg-accent/50'}
+                    ${isCompleted ? 'bg-success/5 border border-success/20' : ''}
+                  `}
+                  onClick={() => setCurrentStep(step.id)}
+                >
+                  <div className="flex items-center space-x-3">
                     <div className={`
                       h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium
                       ${isActive ? 'bg-primary text-primary-foreground' : ''}
                       ${isCompleted ? 'bg-success text-success-foreground' : ''}
                       ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
                     `}>
-                      {isCompleted ? <CheckCircle className="h-4 w-4" /> : step.id}
+                      {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                     </div>
-                    <span className="font-medium text-sm">{step.title}</span>
+                    <div>
+                      <div className={`font-medium text-sm ${isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-foreground'}`}>
+                        {step.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {step.description}
+                      </div>
+                    </div>
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className={`
-                      w-16 h-0.5 mx-4
-                      ${isCompleted ? 'bg-success' : 'bg-border'}
-                    `} />
-                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Step Content */}
-        <div className="mb-8">
-          {renderStep()}
-        </div>
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Back Button */}
+            <div className="mb-6">
+              <Button 
+                variant="ghost" 
+                onClick={prevStep}
+                className="flex items-center space-x-2 transition-all duration-200 hover:bg-accent hover:scale-105 active:scale-95"
+                disabled={isLoading}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>{currentStep === 1 ? 'Back' : 'Back'}</span>
+              </Button>
+            </div>
 
-        {/* Navigation */}
-        <div className="max-w-2xl mx-auto flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={prevStep}
-            className="flex items-center space-x-2 transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95"
-            disabled={isLoading}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>{currentStep === 1 ? 'Back to Dashboard' : 'Previous'}</span>
-          </Button>
-          
-          {currentStep !== 4 && (
-            <Button 
-              onClick={nextStep}
-              disabled={
-                isLoading || 
-                (currentStep === 1 && !campaignData.name.trim()) ||
-                (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) ||
-                (currentStep === 3 && !campaignData.idea.trim())
-              }
-              className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />}
-              <span>{currentStep === 5 ? 'Launch Campaign' : 'Next'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
+            {/* Step Content */}
+            {renderStep()}
+
+            {/* Next Button */}
+            {currentStep !== 4 && (
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={nextStep}
+                  disabled={
+                    isLoading || 
+                    (currentStep === 1 && personaMode === 'auto' && (!autoPersona.website.trim())) ||
+                    (currentStep === 1 && personaMode === 'manual' && (!manualPersona.name.trim() || !manualPersona.companyName.trim())) ||
+                    (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) ||
+                    (currentStep === 3 && !campaignData.idea.trim())
+                  }
+                  className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
+                  <span>{currentStep === 5 ? 'Launch Campaign' : currentStep === 1 && personaMode === 'auto' ? 'Import Persona →' : currentStep === 1 && personaMode === 'manual' ? 'Save Persona →' : 'Next →'}</span>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
