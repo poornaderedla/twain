@@ -10,12 +10,7 @@ const Index = () => {
     return <div>Loading...</div>;
   }
 
-  // If user is signed in, redirect to campaign page
-  if (isSignedIn) {
-    return <Navigate to="/create-campaign" replace />;
-  }
-
-  // If user is not signed in, show the landing page
+  // Show the landing page for both authenticated and unauthenticated users
   return <Dashboard />;
 };
 
