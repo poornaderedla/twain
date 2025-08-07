@@ -42,7 +42,7 @@ const Signup = () => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            const signinLinks = element.querySelectorAll('a[href*="sign-in"], a:has-text("Sign in")');
+            const signinLinks = element.querySelectorAll('a[href*="sign-in"]');
             signinLinks.forEach((link) => {
               link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -115,7 +115,7 @@ const Signup = () => {
               footerActionLink: "text-blue-600 hover:text-blue-700",
             }
           }}
-          redirectUrl={window.location.origin + "/create-campaign"}
+          afterSignUpUrl={window.location.origin + "/"}
           signInUrl={window.location.origin + "/login"}
         />
       </div>

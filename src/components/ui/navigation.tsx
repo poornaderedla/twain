@@ -4,7 +4,12 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import { Button } from './button';
 import { Avatar, AvatarImage, AvatarFallback } from './avatar';
 
-export const Navigation = () => {
+interface NavigationProps {
+  activeNavItem?: string;
+  setActiveNavItem?: (item: string) => void;
+}
+
+export const Navigation = ({ activeNavItem = 'dashboard', setActiveNavItem }: NavigationProps) => {
   const navigate = useNavigate();
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
@@ -19,7 +24,8 @@ export const Navigation = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login');
+    // Don't navigate - let the user stay on the current page
+    // The navbar will automatically show login/signup buttons after sign out
   };
   
   return (
@@ -33,15 +39,46 @@ export const Navigation = () => {
             <span className="text-xl font-semibold">Twain</span>
           </div>
           <div className="hidden md:flex items-center space-x-6 ml-8">
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              onClick={() => setActiveNavItem?.('features')}
+              className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                activeNavItem === 'features' 
+                  ? 'text-primary border-b-2 border-primary pb-1' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
               Features
-            </a>
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveNavItem?.('resources')}
+              className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                activeNavItem === 'resources' 
+                  ? 'text-primary border-b-2 border-primary pb-1' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
               Resources
-            </a>
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveNavItem?.('pricing')}
+              className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                activeNavItem === 'pricing' 
+                  ? 'text-primary border-b-2 border-primary pb-1' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
               Pricing
-            </a>
+            </button>
+            <button 
+              onClick={() => setActiveNavItem?.('dashboard')}
+              className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                activeNavItem === 'dashboard' 
+                  ? 'text-primary border-b-2 border-primary pb-1' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Dashboard
+            </button>
           </div>
         </div>
         

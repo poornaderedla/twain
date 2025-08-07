@@ -323,76 +323,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="text-sm font-bold text-primary-foreground">T</span>
-              </div>
-              <span className="text-xl font-semibold">Twain</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-6 ml-8">
-              <button 
-                onClick={() => setActiveNavItem('features')}
-                className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  activeNavItem === 'features' 
-                    ? 'text-primary border-b-2 border-primary pb-1' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Features
-              </button>
-              <button 
-                onClick={() => setActiveNavItem('resources')}
-                className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  activeNavItem === 'resources' 
-                    ? 'text-primary border-b-2 border-primary pb-1' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Resources
-              </button>
-              <button 
-                onClick={() => setActiveNavItem('pricing')}
-                className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  activeNavItem === 'pricing' 
-                    ? 'text-primary border-b-2 border-primary pb-1' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Pricing
-              </button>
-              <button 
-                onClick={() => setActiveNavItem('dashboard')}
-                className={`text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  activeNavItem === 'dashboard' 
-                    ? 'text-primary border-b-2 border-primary pb-1' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Dashboard
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="hover:scale-105 active:scale-95 transition-all duration-200"
-            >
-              Log in
-            </Button>
-            <Button 
-              size="sm"
-              className="hover:scale-105 active:scale-95 transition-all duration-200"
-            >
-              Sign up
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <Navigation activeNavItem={activeNavItem} setActiveNavItem={setActiveNavItem} />
       
       {renderContent()}
     </div>
