@@ -27,13 +27,18 @@ import {
   Settings,
   Wand2
 } from 'lucide-react';
+import { apiService, Persona, CampaignRequest } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingLookalikes, setIsGeneratingLookalikes] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
   const [lookalikes, setLookalikes] = useState([]);
   const [lookalikeTab, setLookalikeTab] = useState('profiles');
   const [linkedinUrls, setLinkedinUrls] = useState(['']);
@@ -82,6 +87,7 @@ const CreateCampaign = () => {
     competitiveAdvantages: '',
     socialProof: ''
   });
+  const [generatedPersona, setGeneratedPersona] = useState<Persona | null>(null);
 
   const nextStep = () => {
     setIsLoading(true);
@@ -185,6 +191,136 @@ const CreateCampaign = () => {
     }
   };
 
+  // Transform frontend data to backend API format
+  const transformToPersona = (): Persona => {
+    if (personaMode === 'auto') {
+      // If we have a generated persona from the API, use it
+      if (generatedPersona) {
+        return generatedPersona;
+      }
+      
+      // For auto mode without generated persona, create a basic persona structure
+      let company = 'Unknown Company';
+      try {
+        if (autoPersona.website.trim()) {
+          let url = autoPersona.website.trim();
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          company = new URL(url).hostname.replace('www.', '');
+        }
+      } catch (error) {
+        console.error('Invalid URL format:', error);
+      }
+
+      return {
+        id: 'scraped_lead',
+        name: 'Auto Generated',
+        title: 'Target Customer',
+        company,
+        email: '',
+        pain_points: [],
+        social_proof: [],
+        cost_of_inaction: [],
+        solutions: [],
+        objections: [],
+        competitive_advantages: []
+      };
+    } else {
+      // For manual mode, use the form data
+      return {
+        id: 'manual_lead',
+        name: manualPersona.name || undefined,
+        title: undefined,
+        company: manualPersona.companyName || undefined,
+        email: undefined,
+        pain_points: manualPersona.painPoints ? [manualPersona.painPoints] : [],
+        social_proof: manualPersona.socialProof ? [{ statement: manualPersona.socialProof, source: undefined }] : [],
+        cost_of_inaction: manualPersona.costOfInaction ? [manualPersona.costOfInaction] : [],
+        solutions: manualPersona.solutions ? [manualPersona.solutions] : [],
+        objections: manualPersona.objections ? [manualPersona.objections] : [],
+        competitive_advantages: manualPersona.competitiveAdvantages ? [manualPersona.competitiveAdvantages] : []
+      };
+    }
+  };
+
+  // Create campaign using the API
+  const handleCreateCampaign = async () => {
+    try {
+      // Validate required data
+      if (personaMode === 'auto' && !autoPersona.website.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Please provide a website URL for auto persona generation",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (personaMode === 'manual' && (!manualPersona.name.trim() || !manualPersona.companyName.trim())) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required persona fields",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!campaignData.idea.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Please provide a campaign idea",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) {
+        toast({
+          title: "Validation Error",
+          description: "Please add at least one lead or generate lookalikes",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsCreatingCampaign(true);
+      
+      const persona = transformToPersona();
+      const outreachChannel = campaignData.channel === 'both' ? 'useboth' : campaignData.channel;
+      
+      const campaignRequest: CampaignRequest = {
+        persona,
+        outreach_channel: outreachChannel as 'email' | 'linkedin' | 'useboth'
+      };
+
+      console.log('Sending campaign request:', campaignRequest);
+      const response = await apiService.createCampaign(campaignRequest);
+      console.log('Campaign response:', response);
+      
+      toast({
+        title: "Campaign Created!",
+        description: response.message,
+        variant: "default",
+      });
+
+      // Navigate to dashboard after successful creation
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create campaign",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingCampaign(false);
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -269,7 +405,7 @@ const CreateCampaign = () => {
                       </div>
                     </div>
 
-                    <div className="flex justify-center">
+                    <div className="flex justify-center space-x-4">
                       <Button 
                         variant="outline"
                         className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
@@ -291,16 +427,298 @@ const CreateCampaign = () => {
                         <Upload className="w-4 h-4" />
                         <span>Upload Documents</span>
                       </Button>
+                      
+                      <Button 
+                        variant="default"
+                        className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95"
+                        onClick={async () => {
+                          if (!autoPersona.website.trim()) {
+                            toast({
+                              title: "Error",
+                              description: "Please enter a website URL first",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+
+                          // Validate URL format
+                          let url = autoPersona.website.trim();
+                          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                            url = 'https://' + url;
+                          }
+
+                          try {
+                            new URL(url); // Validate URL format
+                          } catch {
+                            toast({
+                              title: "Invalid URL",
+                              description: "Please enter a valid website URL",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          try {
+                            setIsProcessing(true);
+                            console.log('Generating persona for URL:', url);
+                            const persona = await apiService.createPersona({
+                              url: url,
+                              description: autoPersona.targetCustomer || "Generate persona from website"
+                            });
+                            console.log('Generated persona:', persona);
+                            
+                            // Store the generated persona
+                            setGeneratedPersona(persona);
+                            
+                            toast({
+                              title: "Persona Generated!",
+                              description: `Successfully created persona for ${persona.company || 'the website'}`,
+                              variant: "default",
+                            });
+                            
+                            // Auto-advance to next step
+                            setTimeout(() => {
+                              nextStep();
+                            }, 1500);
+                            
+                          } catch (error) {
+                            console.error('Failed to generate persona:', error);
+                            toast({
+                              title: "Error",
+                              description: error instanceof Error ? error.message : "Failed to generate persona",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setIsProcessing(false);
+                          }
+                        }}
+                        disabled={isProcessing || !autoPersona.website.trim()}
+                      >
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="animate-spin w-4 h-4" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            <span>Generate Persona</span>
+                          </>
+                        )}
+                      </Button>
                     </div>
 
-                    {autoPersona.documents && (
-                      <div className="bg-success/10 p-3 rounded-lg border border-success/20">
-                        <p className="text-sm text-success font-medium">
-                          {autoPersona.documents.length} document(s) uploaded successfully
+                    {/* Help Text */}
+                    {!generatedPersona && autoPersona.website.trim() && (
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Click "Generate Persona" to analyze the website and create a detailed persona for your campaign.
                         </p>
+                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-xs text-blue-800">
+                            <strong>What happens:</strong> The AI will analyze the website at {autoPersona.website.trim()} and extract key information about the company, their pain points, solutions, and competitive advantages to create a comprehensive persona for your outreach campaign.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Display Generated Persona */}
+                    {generatedPersona && (
+                      <div className="mt-6 bg-success/10 p-4 rounded-lg border border-success/20">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-success flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>Generated Persona</span>
+                          </h4>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setGeneratedPersona(null)}
+                              className="h-8 px-3 text-xs hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Clear
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                if (!autoPersona.website.trim()) return;
+                                
+                                let url = autoPersona.website.trim();
+                                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                                  url = 'https://' + url;
+                                }
+                                
+                                try {
+                                  setIsProcessing(true);
+                                  const newPersona = await apiService.createPersona({
+                                    url: url,
+                                    description: autoPersona.targetCustomer || "Regenerate persona from website"
+                                  });
+                                  setGeneratedPersona(newPersona);
+                                  toast({
+                                    title: "Persona Regenerated!",
+                                    description: "Successfully updated persona data",
+                                    variant: "default",
+                                  });
+                                } catch (error) {
+                                  console.error('Failed to regenerate persona:', error);
+                                  toast({
+                                    title: "Error",
+                                    description: error instanceof Error ? error.message : "Failed to regenerate persona",
+                                    variant: "destructive",
+                                  });
+                                } finally {
+                                  setIsProcessing(false);
+                                }
+                              }}
+                              disabled={isProcessing}
+                              className="h-8 px-3 text-xs hover:bg-primary/10 hover:border-primary/50"
+                            >
+                              {isProcessing ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <RotateCcw className="h-3 w-3 mr-1" />
+                              )}
+                              Regenerate
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="font-medium text-foreground">Company: {generatedPersona.company || 'N/A'}</p>
+                            <p className="text-muted-foreground">Name: {generatedPersona.name || 'N/A'}</p>
+                            <p className="text-muted-foreground">Title: {generatedPersona.title || 'N/A'}</p>
+                            <p className="text-muted-foreground">Email: {generatedPersona.email || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">Pain Points:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.pain_points.length > 0 ? (
+                                generatedPersona.pain_points.map((point, index) => (
+                                  <p key={index} className="text-muted-foreground text-xs">• {point}</p>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground text-xs">No pain points identified</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Additional Persona Details */}
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="font-medium text-foreground">Solutions:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.solutions.length > 0 ? (
+                                generatedPersona.solutions.map((solution, index) => (
+                                  <p key={index} className="text-muted-foreground text-xs">• {solution}</p>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground text-xs">No solutions identified</p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">Cost of Inaction:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.cost_of_inaction.length > 0 ? (
+                                generatedPersona.cost_of_inaction.map((cost, index) => (
+                                  <p key={index} className="text-muted-foreground text-xs">• {cost}</p>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground text-xs">No costs identified</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="font-medium text-foreground">Objections:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.objections.length > 0 ? (
+                                generatedPersona.objections.map((objection, index) => (
+                                  <p key={index} className="text-muted-foreground text-xs">• {objection}</p>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground text-xs">No objections identified</p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">Competitive Advantages:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.competitive_advantages.length > 0 ? (
+                                generatedPersona.competitive_advantages.map((advantage, index) => (
+                                  <p key={index} className="text-muted-foreground text-xs">• {advantage}</p>
+                                ))
+                              ) : (
+                                <p className="text-muted-foreground text-xs">No advantages identified</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {generatedPersona.social_proof.length > 0 && (
+                          <div className="mt-4 text-sm">
+                            <p className="font-medium text-foreground">Social Proof:</p>
+                            <div className="space-y-1">
+                              {generatedPersona.social_proof.map((proof, index) => (
+                                <div key={index} className="text-muted-foreground text-xs">
+                                  <p>• {proof.statement}</p>
+                                  {proof.source && <p className="ml-4 text-xs opacity-75">Source: {proof.source}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="mt-3 pt-3 border-t border-success/20">
+                          <div className="flex items-center justify-between text-xs">
+                            <p className="text-muted-foreground">
+                              This persona will be used for campaign generation and content creation.
+                            </p>
+                            <div className="flex items-center space-x-2">
+                              <p className="text-primary font-mono">
+                                ID: {generatedPersona.id}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  console.log('Generated Persona Data:', generatedPersona);
+                                  toast({
+                                    title: "Persona Data Logged",
+                                    description: "Check console for raw persona data",
+                                    variant: "default",
+                                  });
+                                }}
+                                className="h-6 px-2 text-xs hover:bg-primary/10"
+                              >
+                                Debug
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-success/20">
+                            <p className="text-xs text-muted-foreground">
+                              <strong>API Endpoint:</strong> POST /persona | <strong>Source:</strong> {autoPersona.website.trim()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Documents Upload Status */}
+                  {autoPersona.documents && (
+                    <div className="bg-success/10 p-3 rounded-lg border border-success/20">
+                      <p className="text-sm text-success font-medium">
+                        {autoPersona.documents.length} document(s) uploaded successfully
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -783,19 +1201,66 @@ const CreateCampaign = () => {
                   <Button
                     variant="outline"
                     className="flex items-center space-x-2 transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95"
-                    onClick={() => {
-                      // Suggest functionality
-                      const suggestions = [
-                        "Introduce our new AI-powered analytics platform that helps reduce operational costs by 30%",
-                        "Share insights about industry trends and offer a free consultation on optimization strategies",
-                        "Present case studies showing how similar companies increased revenue by 40% using our solution"
-                      ];
-                      const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
-                      setCampaignData(prev => ({ ...prev, idea: randomSuggestion }));
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const persona = transformToPersona();
+                        console.log('Generating ideas for persona:', persona);
+                        const ideas = await apiService.generateIdeas(persona);
+                        console.log('Generated ideas:', ideas);
+                        
+                        if (ideas.ideas && ideas.ideas.length > 0) {
+                          const randomIdea = ideas.ideas[Math.floor(Math.random() * ideas.ideas.length)];
+                          setCampaignData(prev => ({ ...prev, idea: randomIdea }));
+                          
+                          toast({
+                            title: "Idea Generated!",
+                            description: "AI has suggested a campaign idea based on your persona",
+                            variant: "default",
+                          });
+                        } else {
+                          // Fallback to static suggestions if API doesn't return ideas
+                          const suggestions = [
+                            "Introduce our new AI-powered analytics platform that helps reduce operational costs by 30%",
+                            "Share insights about industry trends and offer a free consultation on optimization strategies",
+                            "Present case studies showing how similar companies increased revenue by 40% using our solution"
+                          ];
+                          const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                          setCampaignData(prev => ({ ...prev, idea: randomSuggestion }));
+                        }
+                      } catch (error) {
+                        console.error('Failed to generate ideas:', error);
+                        // Fallback to static suggestions on error
+                        const suggestions = [
+                          "Introduce our new AI-powered analytics platform that helps reduce operational costs by 30%",
+                          "Share insights about industry trends and offer a free consultation on optimization strategies",
+                          "Present case studies showing how similar companies increased revenue by 40% using our solution"
+                        ];
+                        const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+                        setCampaignData(prev => ({ ...prev, idea: randomSuggestion }));
+                        
+                        toast({
+                          title: "Using Fallback Ideas",
+                          description: "Generated local suggestions due to API error",
+                          variant: "default",
+                        });
+                      } finally {
+                        setIsLoading(false);
+                      }
                     }}
+                    disabled={isLoading}
                   >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Suggest</span>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin h-4 w-4" />
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        <span>AI Suggest</span>
+                      </>
+                    )}
                   </Button>
                   
                   <Button
@@ -1008,14 +1473,14 @@ const CreateCampaign = () => {
               {/* Create Campaign Button */}
               <div className="flex justify-center mt-8">
                 <Button
-                  onClick={nextStep}
-                  disabled={isLoading}
+                  onClick={handleCreateCampaign}
+                  disabled={isCreatingCampaign}
                   className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95"
                 >
-                  {isLoading ? (
+                  {isCreatingCampaign ? (
                     <>
                       <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                      Creating...
+                      Creating Campaign...
                     </>
                   ) : (
                     'Create Campaign'
@@ -1156,7 +1621,7 @@ const CreateCampaign = () => {
                   onClick={nextStep}
                   disabled={
                     isLoading || 
-                    (currentStep === 1 && personaMode === 'auto' && (!autoPersona.website.trim())) ||
+                    (currentStep === 1 && personaMode === 'auto' && (!autoPersona.website.trim() || !generatedPersona)) ||
                     (currentStep === 1 && personaMode === 'manual' && (!manualPersona.name.trim() || !manualPersona.companyName.trim())) ||
                     (currentStep === 2 && campaignData.leads.length === 0 && campaignData.lookalikes.length === 0) ||
                     (currentStep === 3 && !campaignData.idea.trim())
@@ -1168,9 +1633,50 @@ const CreateCampaign = () => {
                 </Button>
               </div>
             )}
+
+            {/* Create Campaign Button for Step 4 */}
+            {currentStep === 4 && (
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={handleCreateCampaign}
+                  disabled={isCreatingCampaign}
+                  className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingCampaign ? (
+                    <>
+                      <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                      Creating Campaign...
+                    </>
+                  ) : (
+                    'Create Campaign'
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Launch Campaign Button for Step 5 */}
+            {currentStep === 5 && (
+              <div className="flex justify-center mt-8">
+                <Button 
+                  onClick={handleCreateCampaign}
+                  disabled={isCreatingCampaign}
+                  className="px-8 py-3 bg-primary text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingCampaign ? (
+                    <>
+                      <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                      Launching Campaign...
+                    </>
+                  ) : (
+                    'Launch Campaign'
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };
